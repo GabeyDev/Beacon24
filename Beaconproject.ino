@@ -31,10 +31,22 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
 
            if (dataLength >= 25) {
                BLEBeacon oBeacon;
-               oBeacon.setData(strManufacturerData.c_str());
-               uint16_t minor = swapEndian16(oBeacon.getMinor());
+               oBeacon.setData(strManufacturerData);
+               uint16_t minor = oBeacon.getMinor();
                int rssi = advertisedDevice.getRSSI();
                float distance = calculateDistance(rssi) * 10;
+               
+               class BLEBeacon {
+                private:
+                  struct {
+                        uint16_t manufacturerId;
+                        uint8_t subType;
+                        uint8_t subTypeLength;
+                        uint8_t proximityUUID[16];
+                        uint16_t major;
+                        uint16_t minor;
+                        int8_t signalPower;
+                        } __attribute__((packed)) m_beaconData;
 
                Serial.printf("Distância Estimada: %.2f cm\n", distance);
                // Corrigido: substituindo MACAddress por macAddress
@@ -44,6 +56,7 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
                Serial.printf("Major: %d (0x%04X)\n", swapEndian16(oBeacon.getMajor()), swapEndian16(oBeacon.getMajor()));
                Serial.printf("Minor: %d (0x%04X)\n", minor, minor);
                Serial.printf("RSSI: %d\n", rssi);
+
                
                if (minor == 30000) {
                    String deviceName = advertisedDevice.haveName() ? advertisedDevice.getName() : "Desconhecido";
@@ -97,7 +110,6 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
 
                    Serial.println("====================================");
                }
-           }
        }
    }
 };
@@ -127,4 +139,3 @@ void loop() {
     BLEScanResults* foundDevices = pBLEScan->start(scanTime, false);
     pBLEScan->clearResults();
     delay(100);
-}
