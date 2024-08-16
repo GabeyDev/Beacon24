@@ -21,6 +21,16 @@ float calculateDistance(int rssi) {
     }
     return pow(10, ((referenceRSSI - rssi) / (10 * pathLossExponent)));
 }
+typedef struct {
+      uint16_t manufacturerId;
+      uint8_t subType;
+      uint8_t subTypeLength;
+      uint8_t proximityUUID[16];
+      uint16_t major;
+      uint16_t minor;
+      int8_t signalPower;
+} __attribute__((packed)) m_beaconData;
+
 
 class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
    void onResult(BLEAdvertisedDevice advertisedDevice) override {
@@ -35,18 +45,7 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
                uint16_t minor = oBeacon.getMinor();
                int rssi = advertisedDevice.getRSSI();
                float distance = calculateDistance(rssi) * 10;
-               
-               class BLEBeacon {
-                private:
-                  struct {
-                        uint16_t manufacturerId;
-                        uint8_t subType;
-                        uint8_t subTypeLength;
-                        uint8_t proximityUUID[16];
-                        uint16_t major;
-                        uint16_t minor;
-                        int8_t signalPower;
-                        } __attribute__((packed)) m_beaconData;
+              
 
                Serial.printf("Distância Estimada: %.2f cm\n", distance);
                // Corrigido: substituindo MACAddress por macAddress
@@ -110,6 +109,7 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
 
                    Serial.println("====================================");
                }
+           }
        }
    }
 };
@@ -126,16 +126,8 @@ void setup() {
     pBLEScan->setActiveScan(true);
 }
 
-void onResult(BLEAdvertisedDevice Device) {
-    String ManufData = Device.toString().c_str();
-    String TempHex = ManufData.substring(95, 99); 
-    String GravHex = ManufData.substring(99, 103);
-
-    long Temperature = strtol(TempHex.c_str(), NULL, 16);
-    long Gravity = strtol(GravHex.c_str(), NULL, 16);
-}
-
 void loop() {
     BLEScanResults* foundDevices = pBLEScan->start(scanTime, false);
     pBLEScan->clearResults();
     delay(100);
+}
