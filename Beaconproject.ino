@@ -37,6 +37,8 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
                float distance = calculateDistance(rssi) * 10;
 
                Serial.printf("Distância Estimada: %.2f cm\n", distance);
+               // Corrigido: substituindo MACAddress por macAddress
+               String macAddress = advertisedDevice.getAddress().toString();
                Serial.printf("Endereço MAC: %s\n", macAddress.c_str());
                Serial.printf("UUID: %s\n", oBeacon.getProximityUUID().toString().c_str());
                Serial.printf("Major: %d (0x%04X)\n", swapEndian16(oBeacon.getMajor()), swapEndian16(oBeacon.getMajor()));
@@ -44,7 +46,6 @@ class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
                Serial.printf("RSSI: %d\n", rssi);
                
                if (minor == 30000) {
-                   String macAddress = advertisedDevice.getAddress().toString();
                    String deviceName = advertisedDevice.haveName() ? advertisedDevice.getName() : "Desconhecido";
 
                    Serial.println("====================================");
@@ -111,6 +112,15 @@ void setup() {
     pBLEScan = BLEDevice::getScan(); 
     pBLEScan->setAdvertisedDeviceCallbacks(new MyAdvertisedDeviceCallbacks());
     pBLEScan->setActiveScan(true);
+}
+
+void onResult(BLEAdvertisedDevice Device) {
+    String ManufData = Device.toString().c_str();
+    String TempHex = ManufData.substring(95, 99); 
+    String GravHex = ManufData.substring(99, 103);
+
+    long Temperature = strtol(TempHex.c_str(), NULL, 16);
+    long Gravity = strtol(GravHex.c_str(), NULL, 16);
 }
 
 void loop() {
